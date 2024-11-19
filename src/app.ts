@@ -121,8 +121,8 @@ app.get('/verificar_agenda', async (req, res) => {
     }
 
     // Obtém o horário atual ajustado para o timezone de Manaus
-    // const now = moment().tz('America/Manaus').format('DD/MM/YYYY, HH:mm:ss');
-    const now = '02/12/2024, 14:00:00';
+    const now = moment().tz('America/Manaus').format('DD/MM/YYYY, HH:mm:ss');
+    // const now = '02/12/2024, 14:00:00';
 
     console.log(`Sala: ${sala}`);
     console.log(`Hora atual em Manaus: ${now}`);
