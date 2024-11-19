@@ -7,6 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import csvParser from 'csv-parser';
 import { Reserva } from './models/reserva';
+import { Op, Sequelize } from 'sequelize';
+import moment from 'moment';
 
 const cors = require('cors');
 const app = express();
@@ -61,6 +63,7 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
           const duracao = converterDuracao(reservaData['Duração']?.trim());
           const area = reservaData['Área']?.trim() || 'N/A';
           const sala = reservaData['Sala']?.trim() || 'N/A';
+          const idSala = filtroIdSala(sala);
 
           // Verificar se a reserva já existe no banco
           const reservaExistente = await Reserva.findOne({
@@ -78,6 +81,7 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
               usuarioAtividade: reservaData['"Usuário / Atividade']?.trim() || 'N/A',
               area,
               sala,
+              idSala,
               inicio: inicio || 'N/A',
               fim: fim || 'N/A',
               duracao: duracao,
@@ -107,6 +111,61 @@ app.post('/api/upload-csv', upload.single('file'), (req, res) => {
     });
 });
 
+app.get('/verificar_agenda', async (req, res) => {
+  try {
+    const { sala } = req.query;  // Obtém o parâmetro 'sala' da query string
+
+    if (!sala) {
+      res.status(400).json({ message: 'Sala não informada' });
+      return;
+    }
+
+    // Obtém o horário atual ajustado para o timezone de Manaus
+    // const now = moment().tz('America/Manaus').format('DD/MM/YYYY, HH:mm:ss');
+    const now = '02/12/2024, 14:00:00';
+
+    console.log(`Sala: ${sala}`);
+    console.log(`Hora atual em Manaus: ${now}`);
+
+    // Verifica se a sala está reservada no horário atual
+    const reserva = await Reserva.findOne({
+      where: {
+        idSala: sala,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn('TO_TIMESTAMP', Sequelize.col('inicio'), 'DD/MM/YYYY, HH24:MI:SS'),
+            { [Op.lte]: Sequelize.fn('TO_TIMESTAMP', now, 'DD/MM/YYYY, HH24:MI:SS') } // Compara se a reserva já começou
+          ),
+          Sequelize.where(
+            Sequelize.fn('TO_TIMESTAMP', Sequelize.col('fim'), 'DD/MM/YYYY, HH24:MI:SS'),
+            { [Op.gte]: Sequelize.fn('TO_TIMESTAMP', now, 'DD/MM/YYYY, HH24:MI:SS') } // Compara se a reserva ainda não terminou
+          ),
+        ],
+      },
+    });
+
+    if (reserva) {
+      // Se encontrar uma reserva, retorna que está ocupada
+      res.status(200).json({
+        status: 'ocupada',
+        mensagem: 'A sala está ocupada.',
+        detalhes: reserva,  // Retorna os detalhes da reserva
+      });
+      return;
+    } else {
+      // Se não encontrar nenhuma reserva, a sala está livre
+      res.status(200).json({
+        status: 'livre',
+        mensagem: 'A sala está livre.',
+      });
+      return;
+    }
+  } catch (error) {
+    console.error('Erro ao verificar agenda:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+    return;
+  }
+});
 
 function converterDuracao(duracao: string): number {
   const duracaoLimpa = duracao.replace(' horas', '').replace(',', '.');
@@ -146,7 +205,7 @@ function formatarData(dataString: string): String | null {
 
     // Obter o número do mês
     const mes = meses[mesTexto.toLowerCase()];
-    
+
     if (!mes) {
       console.error('Mês inválido:', mesTexto);
       return null;
@@ -166,7 +225,41 @@ function formatarData(dataString: string): String | null {
 // Sincronizar o banco de dados e iniciar o servidor
 sequelize.sync().then(() => {
   console.log('Banco de dados sincronizado');
-  app.listen(3000,'0.0.0.0', () => {
+  app.listen(3000, '0.0.0.0', () => {
     console.log('Servidor rodando na porta 3000');
   });
 });
+
+function filtroIdSala(sala: string): string {
+  const mapaSalas: Record<string, string> = {
+    "Comunicações Ópticas": "9",
+    "Lab. Programação I": "5",
+    "Lab. Programação IV": "24",
+    "MPCE": "25",
+    "Lab. Programação II": "6",
+    "Lab. Programação III": "7",
+    "Redes de Telecomunicações": "10",
+    "Sistemas de Telecom": "8",
+    "Indústria I": "1",
+    "Indústria II": "2",
+    "Indústria III": "3",
+    "Lab. FINEP": "18",
+    "Lab. FLL": "29",
+    "Lab. Prototipagem": "30",
+    "Laboratório de Biologia": "15",
+    "Laboratório de Desenho": "28",
+    "Laboratório de Eletrônica de Potência": "23",
+    "Lab. Robótica e Controle": "21",
+    "Lab. de Acionamentos/ CLP": "20",
+    "Lab. Hidrául./ Pneumática": "19",
+    "Lab. Metrologia": "26",
+    "Áudio e Vídeo": "11",
+    "Lab. de Automação": "12",
+    "Lab. de Física": "22",
+    "Lab. de Química": "14",
+  };
+
+  return mapaSalas[sala] || "ID desconhecido"; // Retorna um valor padrão se não encontrado
+}
+
+

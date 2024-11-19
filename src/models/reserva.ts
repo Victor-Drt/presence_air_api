@@ -7,6 +7,7 @@ export class Reserva extends Model {
   public usuarioAtividade!: string;  // Usuário / Atividade que fez a reserva
   public area!: string;  // Área onde a sala está localizada
   public sala!: string;  // Nome da sala
+  public idSala!: string;  // Nome da sala
   public inicio!: string;  // Data e hora de início da reserva
   public fim!: string;  // Data e hora de fim da reserva
   public duracao!: number;  // Duração da reserva em horas decimais
@@ -29,6 +30,10 @@ Reserva.init(
       allowNull: false,
     },
     sala: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    idSala: {
       type: DataTypes.STRING,
       allowNull: false,
     },
