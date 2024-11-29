@@ -68,13 +68,14 @@ export class ReservaService {
         return null;
       }
 
+
       // Atualiza os campos permitidos
       await reserva.update({
         usuarioAtividade: data.usuarioAtividade || reserva.usuarioAtividade,
         area: data.area || reserva.area,
         sala: data.sala || reserva.sala,
-        inicio: data.inicio || reserva.inicio,
-        fim: data.fim || reserva.fim,
+        inicio: formatarData(data.inicio!) || reserva.inicio,
+        fim: formatarData(data.inicio!) || reserva.fim,
         duracao: data.duracao || reserva.duracao,
         descricao: data.descricao !== undefined ? data.descricao : reserva.descricao,
         tipo: data.tipo || reserva.tipo,
@@ -97,4 +98,14 @@ function formatDates(p1: string, p2: string) {
   const final = moment.tz(p2, "America/Manaus").endOf("day").format("DD/MM/yyyy, HH:mm:ss");
 
   return [inicio, final];
+}
+
+
+function formatarData(dataString: string): String | null {
+  try {
+    return new Date(dataString).toLocaleString('pt-BR', { timeZone: 'America/Manaus' });
+  } catch (error) {
+    console.error('Erro ao formatar data:', error);
+    return null;
+  }
 }

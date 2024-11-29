@@ -1,21 +1,19 @@
 import { Request, Response } from 'express';
-import { Reserva } from '../models/reserva';
 import { ReservaService } from '../services/reservaService';
-import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
-import csvParser from 'csv-parser';
-import { log } from 'console';
+
 
 // Criar uma nova reserva
 export const criarReserva = async (req: Request, res: Response) => {
     try {
         const { usuarioAtividade, area, sala, inicio, fim, duracao, descricao, tipo, reservadoPor, ultimaAtualizacao, statusArcondicionado } = req.body;
 
+        var idSala = filtroIdSala(sala);
+
         const reserva = await ReservaService.criarReserva({
             usuarioAtividade,
             area,
             sala,
+            idSala,
             inicio: formatarData(inicio),
             fim: formatarData(fim),
             duracao,
@@ -33,53 +31,47 @@ export const criarReserva = async (req: Request, res: Response) => {
     }
 };
 
+function filtroIdSala(sala: string): string {
+    const mapaSalas: Record<string, string> = {
+      "Comunicações Ópticas": "9",
+      "Lab. Programação I": "5",
+      "Lab. Programação IV": "24",
+      "MPCE": "25",
+      "Lab. Programação II": "6",
+      "Lab. Programação III": "7",
+      "Redes de Telecomunicações": "10",
+      "Sistemas de Telecom": "8",
+      "Indústria I": "1",
+      "Indústria II": "2",
+      "Indústria III": "3",
+      "Lab. FINEP": "18",
+      "Lab. FLL": "29",
+      "Lab. Prototipagem": "30",
+      "Laboratório de Biologia": "15",
+      "Laboratório de Desenho": "28",
+      "Laboratório de Eletrônica de Potência": "23",
+      "Lab. Robótica e Controle": "21",
+      "Lab. de Acionamentos/ CLP": "20",
+      "Lab. Hidrául./ Pneumática": "19",
+      "Lab. Metrologia": "26",
+      "Áudio e Vídeo": "11",
+      "Lab. de Automação": "12",
+      "Lab. de Física": "22",
+      "Lab. de Química": "14",
+    };
+  
+    return mapaSalas[sala] || "ID desconhecido"; // Retorna um valor padrão se não encontrado
+  }
+  
+
 function formatarData(dataString: string): String | null {
     try {
-        // Remover o dia da semana (exemplo: "- segunda", "- terça")
-        const dataSemDiaSemana = dataString.replace(/ - [a-zA-ZÀ-ú]+ /i, ' ');
-
-        // Quebra a string em horário e data
-        const [horario, diaTexto, mesTexto, ano] = dataSemDiaSemana.split(' ');
-
-        if (!horario || !diaTexto || !mesTexto || !ano) {
-            console.error('Formato de data inválido:', dataString);
-            return null;
-        }
-
-        // Mapeamento de meses
-        const meses: { [key: string]: string } = {
-            janeiro: '01',
-            fevereiro: '02',
-            março: '03',
-            abril: '04',
-            maio: '05',
-            junho: '06',
-            julho: '07',
-            agosto: '08',
-            setembro: '09',
-            outubro: '10',
-            novembro: '11',
-            dezembro: '12',
-        };
-
-        // Obter o número do mês
-        const mes = meses[mesTexto.toLowerCase()];
-
-        if (!mes) {
-            console.error('Mês inválido:', mesTexto);
-            return null;
-        }
-
-        // Construir a string de data no formato YYYY-MM-DDTHH:mm:ss
-        const dataFormatada = `${ano}-${mes}-${diaTexto}T${horario}`;
-
-        return new Date(dataFormatada).toLocaleString('pt-BR', { timeZone: 'America/Manaus' });
+        return new Date(dataString).toLocaleString('pt-BR', { timeZone: 'America/Manaus' });
     } catch (error) {
         console.error('Erro ao formatar data:', error);
         return null;
     }
 }
-
 
 // Consultar todas as reservas
 export const consultarReservas = async (req: Request, res: Response) => {

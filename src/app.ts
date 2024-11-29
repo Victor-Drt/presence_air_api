@@ -7,8 +7,9 @@ import fs from 'fs';
 import path from 'path';
 import csvParser from 'csv-parser';
 import { Reserva } from './models/reserva';
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 import moment from 'moment';
+import { log } from 'console';
 
 const cors = require('cors');
 const app = express();
@@ -121,24 +122,20 @@ app.get('/verificar_agenda', async (req, res) => {
     }
 
     // Obtém o horário atual ajustado para o timezone de Manaus
-    const now = moment().tz('America/Manaus').format('DD/MM/YYYY, HH:mm:ss');
-    // const now = '02/12/2024, 14:00:00';
-
-    console.log(`Sala: ${sala}`);
-    console.log(`Hora atual em Manaus: ${now}`);
+    const now = moment().tz('America/Manaus'); // Hora atual
 
     // Verifica se a sala está reservada no horário atual
     const reserva = await Reserva.findOne({
       where: {
         idSala: sala,
         [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn('TO_TIMESTAMP', Sequelize.col('inicio'), 'DD/MM/YYYY, HH24:MI:SS'),
-            { [Op.lte]: Sequelize.fn('TO_TIMESTAMP', now, 'DD/MM/YYYY, HH24:MI:SS') } // Compara se a reserva já começou
+          sequelize.where(
+            sequelize.fn('TO_TIMESTAMP', sequelize.col('inicio'), 'DD/MM/YYYY, HH24:MI:SS'),
+            { [Op.lte]: sequelize.fn('TO_TIMESTAMP', now.add(15, 'minutes').format('DD/MM/YYYY, HH:mm:ss'), 'DD/MM/YYYY, HH24:MI:SS') } // Tolerância de 15 minutos após o horário
           ),
-          Sequelize.where(
-            Sequelize.fn('TO_TIMESTAMP', Sequelize.col('fim'), 'DD/MM/YYYY, HH24:MI:SS'),
-            { [Op.gte]: Sequelize.fn('TO_TIMESTAMP', now, 'DD/MM/YYYY, HH24:MI:SS') } // Compara se a reserva ainda não terminou
+          sequelize.where(
+            sequelize.fn('TO_TIMESTAMP', sequelize.col('fim'), 'DD/MM/YYYY, HH24:MI:SS'),
+            { [Op.gte]: sequelize.fn('TO_TIMESTAMP', now.format('DD/MM/YYYY, HH:mm:ss'), 'DD/MM/YYYY, HH24:MI:SS') } // Hora atual para verificar o fim
           ),
         ],
       },
@@ -146,18 +143,11 @@ app.get('/verificar_agenda', async (req, res) => {
 
     if (reserva) {
       // Se encontrar uma reserva, retorna que está ocupada
-      res.status(200).json({
-        status: 'ocupada',
-        mensagem: 'A sala está ocupada.',
-        detalhes: reserva,  // Retorna os detalhes da reserva
-      });
+      res.status(200).json(1);
       return;
     } else {
       // Se não encontrar nenhuma reserva, a sala está livre
-      res.status(200).json({
-        status: 'livre',
-        mensagem: 'A sala está livre.',
-      });
+      res.status(200).json(0);
       return;
     }
   } catch (error) {
@@ -224,7 +214,6 @@ function formatarData(dataString: string): String | null {
 
 // Sincronizar o banco de dados e iniciar o servidor
 sequelize.sync().then(() => {
-  console.log('Banco de dados sincronizado');
   app.listen(3000, '0.0.0.0', () => {
     console.log('Servidor rodando na porta 3000');
   });

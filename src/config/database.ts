@@ -10,6 +10,7 @@ const sequelize = new Sequelize({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   logging: false,
+  timezone: '+00:00',  // Definir fuso horário como UTC
 });
 
 export default sequelize;
