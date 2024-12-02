@@ -116,8 +116,6 @@ app.get('/verificar_agenda', async (req, res) => {
   try {
     const { sala } = req.query;  // Obtém o parâmetro 'sala' da query string
 
-    console.log("Verificando agendamento em:", sala)
-
     if (!sala) {
       res.status(400).json({ message: 'Sala não informada' });
       return;
@@ -148,6 +146,7 @@ app.get('/verificar_agenda', async (req, res) => {
       // Se encontrar uma reserva, retorna que está ocupada
       const obj = {
         "id": id,
+        "encerrado": reserva.encerrado,
         "status": 1
       }
       res.status(200).json(obj);
@@ -156,6 +155,7 @@ app.get('/verificar_agenda', async (req, res) => {
       // Se encontrar uma reserva, retorna que está ocupada
       const obj = {
         "id": -1,
+        "encerrado": -1,
         "status": 0
       }
 

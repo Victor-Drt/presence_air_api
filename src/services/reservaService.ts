@@ -68,9 +68,6 @@ export class ReservaService {
         return null;
       }
 
-      var idSala = filtroIdSala(data.sala!);
-
-
       // Atualiza os campos permitidos
       await reserva.update({
         usuarioAtividade: data.usuarioAtividade || reserva.usuarioAtividade,
@@ -85,6 +82,7 @@ export class ReservaService {
         reservadoPor: data.reservadoPor || reserva.reservadoPor,
         ultimaAtualizacao: data.ultimaAtualizacao || reserva.ultimaAtualizacao,
         statusArcondicionado: data.statusArcondicionado !== undefined ? data.statusArcondicionado : reserva.statusArcondicionado,
+        encerrado: data.encerrado !== undefined ? data.encerrado : reserva.encerrado
       });
 
       return reserva;

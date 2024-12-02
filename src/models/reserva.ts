@@ -16,6 +16,7 @@ export class Reserva extends Model {
   public reservadoPor!: string;  // Quem fez a reserva
   public ultimaAtualizacao!: string;  // Última atualização da reserva
   public statusArcondicionado!: boolean;  // Última atualização da reserva
+  public encerrado!: boolean;  // Última atualização da reserva
 }
 
 // Definindo a tabela e os atributos no Sequelize
@@ -68,6 +69,10 @@ Reserva.init(
     statusArcondicionado: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
+    },
+    encerrado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     },
   },
   {
