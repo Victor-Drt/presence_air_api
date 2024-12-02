@@ -68,14 +68,17 @@ export class ReservaService {
         return null;
       }
 
+      var idSala = filtroIdSala(data.sala!);
+
 
       // Atualiza os campos permitidos
       await reserva.update({
         usuarioAtividade: data.usuarioAtividade || reserva.usuarioAtividade,
         area: data.area || reserva.area,
         sala: data.sala || reserva.sala,
-        inicio: formatarData(data.inicio!) || reserva.inicio,
-        fim: formatarData(data.inicio!) || reserva.fim,
+        idSala: filtroIdSala(data.sala!) || reserva.idSala,
+        inicio: formatarData(data.inicio) || reserva.inicio,
+        fim: formatarData(data.fim) || reserva.fim,
         duracao: data.duracao || reserva.duracao,
         descricao: data.descricao !== undefined ? data.descricao : reserva.descricao,
         tipo: data.tipo || reserva.tipo,
@@ -92,6 +95,44 @@ export class ReservaService {
   }
 }
 
+function filtroIdSala(sala: string | undefined): string | undefined {
+  if (sala) {
+    const mapaSalas: Record<string, string> = {
+      "Comunicações Ópticas": "9",
+      "Lab. Programação I": "5",
+      "Lab. Programação IV": "24",
+      "MPCE": "25",
+      "Lab. Programação II": "6",
+      "Lab. Programação III": "7",
+      "Redes de Telecomunicações": "10",
+      "Sistemas de Telecom": "8",
+      "Indústria I": "1",
+      "Indústria II": "2",
+      "Indústria III": "3",
+      "Lab. FINEP": "18",
+      "Lab. FLL": "29",
+      "Lab. Prototipagem": "30",
+      "Laboratório de Biologia": "15",
+      "Laboratório de Desenho": "28",
+      "Laboratório de Eletrônica de Potência": "23",
+      "Lab. Robótica e Controle": "21",
+      "Lab. de Acionamentos/ CLP": "20",
+      "Lab. Hidrául./ Pneumática": "19",
+      "Lab. Metrologia": "26",
+      "Áudio e Vídeo": "11",
+      "Lab. de Automação": "12",
+      "Lab. de Física": "22",
+      "Lab. de Química": "14",
+    };
+
+    return mapaSalas[sala] || "ID desconhecido"; // Retorna um valor padrão se não encontrado
+
+  } else {
+    return undefined;
+  }
+}
+
+
 // Função de formatação das datas de entrada
 function formatDates(p1: string, p2: string) {
   const inicio = moment.tz(p1, "America/Manaus").startOf("day").format("DD/MM/yyyy, HH:mm:ss");
@@ -101,11 +142,18 @@ function formatDates(p1: string, p2: string) {
 }
 
 
-function formatarData(dataString: string): String | null {
-  try {
-    return new Date(dataString).toLocaleString('pt-BR', { timeZone: 'America/Manaus' });
-  } catch (error) {
-    console.error('Erro ao formatar data:', error);
-    return null;
+function formatarData(dataString: string | undefined): String | undefined {
+
+  if (dataString !== undefined) {
+    try {
+      const date = new Date(dataString!).toLocaleString('pt-BR', { timeZone: 'America/Manaus' });
+      return date;
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return undefined;
+    }
+  } else {
+    return undefined;
   }
+
 }

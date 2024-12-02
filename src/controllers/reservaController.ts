@@ -142,10 +142,7 @@ export const editarReserva = async (req: Request, res: Response) => {
             return;
         }
 
-        res.status(200).json({
-            message: 'Reserva atualizada com sucesso.',
-            data: reservaAtualizada,
-        });
+        res.status(200).json(1);
     } catch (error) {
         console.error('Erro ao editar reserva:', error);
         res.status(500).json({

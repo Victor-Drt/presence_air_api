@@ -116,6 +116,8 @@ app.get('/verificar_agenda', async (req, res) => {
   try {
     const { sala } = req.query;  // Obtém o parâmetro 'sala' da query string
 
+    console.log("Verificando agendamento em:", sala)
+
     if (!sala) {
       res.status(400).json({ message: 'Sala não informada' });
       return;
@@ -142,12 +144,23 @@ app.get('/verificar_agenda', async (req, res) => {
     });
 
     if (reserva) {
+      const id = reserva?.toJSON()["id"];
       // Se encontrar uma reserva, retorna que está ocupada
-      res.status(200).json(1);
+      const obj = {
+        "id": id,
+        "status": 1
+      }
+      res.status(200).json(obj);
       return;
     } else {
+      // Se encontrar uma reserva, retorna que está ocupada
+      const obj = {
+        "id": -1,
+        "status": 0
+      }
+
       // Se não encontrar nenhuma reserva, a sala está livre
-      res.status(200).json(0);
+      res.status(200).json(obj);
       return;
     }
   } catch (error) {
