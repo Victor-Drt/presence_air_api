@@ -11,6 +11,7 @@ export class Reserva extends Model {
   public inicio!: string;  // Data e hora de início da reserva
   public fim!: string;  // Data e hora de fim da reserva
   public duracao!: number;  // Duração da reserva em horas decimais
+  public tempoLigado!: number;
   public descricao!: string | null;  // Descrição adicional (pode ser nulo)
   public tipo!: string;  // Tipo de atividade
   public reservadoPor!: string;  // Quem fez a reserva
@@ -49,6 +50,10 @@ Reserva.init(
     duracao: {
       type: DataTypes.FLOAT,
       allowNull: false,
+    },
+    tempoLigado: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     },
     descricao: {
       type: DataTypes.STRING,

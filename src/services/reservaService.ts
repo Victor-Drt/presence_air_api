@@ -77,6 +77,7 @@ export class ReservaService {
         inicio: formatarData(data.inicio) || reserva.inicio,
         fim: formatarData(data.fim) || reserva.fim,
         duracao: data.duracao || reserva.duracao,
+        tempoLigado: data.tempoLigado || reserva.tempoLigado,
         descricao: data.descricao !== undefined ? data.descricao : reserva.descricao,
         tipo: data.tipo || reserva.tipo,
         reservadoPor: data.reservadoPor || reserva.reservadoPor,
@@ -129,7 +130,6 @@ function filtroIdSala(sala: string | undefined): string | undefined {
     return undefined;
   }
 }
-
 
 // Função de formatação das datas de entrada
 function formatDates(p1: string, p2: string) {
