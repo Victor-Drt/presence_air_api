@@ -123,6 +123,11 @@ app.get('/verificar_agenda', async (req, res) => {
 
     // Obtém o horário atual ajustado para o timezone de Manaus
     const now = moment().tz('America/Manaus'); // Hora atual
+    const quinze_minutos_antes =  moment().tz('America/Manaus').add(15, 'minutes').format('DD/MM/YYYY, HH:mm:ss');
+
+    console.log("quinze_minutos_antes:", quinze_minutos_antes);
+    console.log("now:", now.format('DD/MM/YYYY, HH:mm:ss'));
+
 
     // Verifica se a sala está reservada no horário atual
     const reserva = await Reserva.findOne({
@@ -131,11 +136,11 @@ app.get('/verificar_agenda', async (req, res) => {
         [Op.and]: [
           sequelize.where(
             sequelize.fn('TO_TIMESTAMP', sequelize.col('inicio'), 'DD/MM/YYYY, HH24:MI:SS'),
-            { [Op.lte]: sequelize.fn('TO_TIMESTAMP', now.add(15, 'minutes').format('DD/MM/YYYY, HH:mm:ss'), 'DD/MM/YYYY, HH24:MI:SS') } // Tolerância de 15 minutos após o horário
+            { [Op.lte]: sequelize.fn('TO_TIMESTAMP', quinze_minutos_antes, 'DD/MM/YYYY, HH24:MI:SS') } // Hora atual 15 minutos antes do início
           ),
           sequelize.where(
             sequelize.fn('TO_TIMESTAMP', sequelize.col('fim'), 'DD/MM/YYYY, HH24:MI:SS'),
-            { [Op.gte]: sequelize.fn('TO_TIMESTAMP', now.format('DD/MM/YYYY, HH:mm:ss'), 'DD/MM/YYYY, HH24:MI:SS') } // Hora atual para verificar o fim
+            { [Op.gte]: sequelize.fn('TO_TIMESTAMP',  now.format('DD/MM/YYYY, HH:mm:ss'), 'DD/MM/YYYY, HH24:MI:SS') } // Hora atual para verificar o fim
           ),
         ],
       },

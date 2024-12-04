@@ -139,7 +139,6 @@ function formatDates(p1: string, p2: string) {
   return [inicio, final];
 }
 
-
 function formatarData(dataString: string | undefined): String | undefined {
 
   if (dataString !== undefined) {
