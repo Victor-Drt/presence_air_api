@@ -125,10 +125,6 @@ app.get('/verificar_agenda', async (req, res) => {
     const now = moment().tz('America/Manaus'); // Hora atual
     const quinze_minutos_antes =  moment().tz('America/Manaus').add(15, 'minutes').format('DD/MM/YYYY, HH:mm:ss');
 
-    console.log("quinze_minutos_antes:", quinze_minutos_antes);
-    console.log("now:", now.format('DD/MM/YYYY, HH:mm:ss'));
-
-
     // Verifica se a sala está reservada no horário atual
     const reserva = await Reserva.findOne({
       where: {

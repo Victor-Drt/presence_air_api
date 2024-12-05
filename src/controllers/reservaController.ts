@@ -87,6 +87,20 @@ export const consultarReservas = async (req: Request, res: Response) => {
     }
 };
 
+// Consultar todas as reservas
+export const tempoLigadoPorSala = async (req: Request, res: Response) => {
+    try {
+
+        const { p1, p2 } = req.query
+
+        const resultado = await ReservaService.calcularTempoLigadoPorSala(p1 as string, p2 as string);
+        res.status(200).json(resultado);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao calcular Tempo Ligado Por Sala' });
+    }
+};
+
 // Consultar uma reserva por ID
 export const consultarReservaPorId = async (req: Request, res: Response) => {
     try {

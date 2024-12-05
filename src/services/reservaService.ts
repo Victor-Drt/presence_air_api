@@ -35,7 +35,54 @@ export class ReservaService {
       return [];
     }
   }
-
+  
+  public static async calcularTempoLigadoPorSala(p1: string, p2: string): Promise<any[]> {
+    try {
+      const [inicio, final] = formatDates(p1, p2);
+      const inicioISO = moment.tz(inicio, "DD/MM/yyyy, HH:mm:ss", "America/Manaus").toISOString();
+      const finalISO = moment.tz(final, "DD/MM/yyyy, HH:mm:ss", "America/Manaus").toISOString();
+  
+      // Consultando as reservas no intervalo de tempo fornecido
+      const reservas = await Reserva.findAll({
+        where: Sequelize.where(
+          Sequelize.fn('TO_TIMESTAMP', Sequelize.col('inicio'), 'DD/MM/YYYY, HH24:MI:SS'),
+          {
+            [Op.between]: [inicioISO, finalISO],
+          }
+        ),
+        order: [['inicio', 'ASC']], // Ordenando as reservas pela data de início
+      });
+  
+      // Criando um objeto para armazenar a soma do tempo ligado por sala
+      const tempoLigadoPorSala: { [key: string]: number } = {};
+  
+      // Iterando sobre as reservas e somando o tempo de cada sala
+      reservas.forEach((reserva: any) => {
+        const sala = reserva.sala; // Supondo que a sala esteja armazenada no campo 'sala'
+        const tempoLigado = reserva.tempoLigado; // Supondo que o tempoLigado esteja em milissegundos
+  
+        // Se já existir tempo para a sala, soma ao valor existente; caso contrário, inicia com o tempo atual
+        if (tempoLigadoPorSala[sala]) {
+          tempoLigadoPorSala[sala] += tempoLigado;
+        } else {
+          tempoLigadoPorSala[sala] = tempoLigado;
+        }
+      });
+  
+      // Convertendo o objeto para um array de resultados, para retorno
+      const resultado = Object.entries(tempoLigadoPorSala).map(([sala, tempo]) => ({
+        sala,
+        tempoLigado: tempo,
+        tempoLigadoMinutos: tempo / 60000, // Convertendo de milissegundos para minutos
+      }));
+  
+      return resultado;
+    } catch (error) {
+      console.error('Erro ao calcular tempo ligado por sala:', error);
+      return [];
+    }
+  }
+  
   // Consultar uma reserva por ID
   public static async consultarReservaPorId(id: string): Promise<any | null> {
     const reserva = await Reserva.findByPk(id);
@@ -61,7 +108,7 @@ export class ReservaService {
     data: Partial<Reserva>
   ): Promise<any | null> {
     try {
-      const reserva = await Reserva.findByPk(id);
+      const reserva = await Reserva.findByPk(id);      
 
       if (!reserva) {
         console.error(`Reserva com ID ${id} não encontrada.`);
